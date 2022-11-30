@@ -1,10 +1,12 @@
 from typing import Optional
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, status, Form, Header
 from enum import Enum
 from pydantic import BaseModel, Field
 from uuid import UUID
 from starlette.responses import JSONResponse
-
+"""
+Learning purposes
+"""
 
 class NegativeNumberException(Exception):
     def __init__(self, books_to_return):
@@ -30,6 +32,13 @@ class Book(BaseModel):
                 "rating": "75"
             }
         }
+
+
+class BookNoRating(BaseModel):
+    id: UUID
+    title: str = Field(min_length=1)
+    author: str = Field(min_length=1, max_length=100)
+    descriptions: Optional[str] = Field(None, title="Description of the book", min_length=1, max_length=100)
 
 
 BOOKS = []
@@ -58,8 +67,30 @@ async def read_all_books(books_to_return: Optional[int] = None):
     return BOOKS
 
 
+@app.post("/books/login/")
+async def book_login(book_id: UUID, username: Optional[str] = Header(None), password: Optional[str] = Header(None)):
+    if username == "FastAPIUser" and password == "test1234!":
+        for x in BOOKS:
+            if x.id == book_id:
+                return x
+    return HTTPException(status_code=404, detail="“Invalid User”", headers={"X_Header-Error": "No user found"})
+
+
+
+@app.get("/header")
+async def read_header(random_header: Optional[str] = Header(None)):
+    return {"Random-Header": random_header}
+
 @app.get("/book/{book_id}")
 async def read_book(book_id: UUID):
+    for x in BOOKS:
+        if x.id == book_id:
+            return x
+    raise raise_item_cannot_be_found_exception()
+
+
+@app.get("/book/rating/{book_id}", response_model=BookNoRating)
+async def read_book_no_rating(book_id: UUID):
     for x in BOOKS:
         if x.id == book_id:
             return x
@@ -77,7 +108,7 @@ async def book_id_book(book_id: UUID, book: Book):
     raise raise_item_cannot_be_found_exception()
 
 
-@app.post("/")
+@app.post("/", status_code=status.HTTP_201_CREATED)
 async def create_book(book: Book):
     BOOKS.append(book)
     return book
@@ -93,6 +124,10 @@ async def delete_book(book_id: UUID):
             del BOOKS[counter - 1]
             return f"Book with ID {book_id} was deleted!"
     raise raise_item_cannot_be_found_exception()
+
+
+
+
 
 
 def create_books_no_api():
