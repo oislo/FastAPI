@@ -26,7 +26,7 @@ Base = declarative_base()
 
 
 """The below are uses for mysql. pip install pymysql """
-# SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:Test1234@127.0.0.1:3306/todoapp"
+# SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:<InsertThePasswordHere>.0.0.1:3333/todoapp"
 
 # engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
